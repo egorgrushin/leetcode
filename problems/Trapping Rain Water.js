@@ -1,25 +1,35 @@
 export const trap = (heights) => {
-    let trapped = 0, descents = [], lastHeight = -1;
+    let trapped = 0, descentIndices = [], prevHeight = -1;
 
     for (let i = 0; i < heights.length; i++) {
-        const height = heights[i];
+        const currentHeight = heights[i];
         // down
-        if (height < lastHeight) {
-            descents.push(i - 1);
+        if (currentHeight < prevHeight) {
+            descentIndices.push(i - 1);
         }
         // up
-        if (height >= lastHeight) {
-            for (let j = lastHeight + 1; j <= height; j++) {
-                const descent = descents.pop();
-                if (descent === undefined) continue;
-                const descentHeight = heights[descent];
-                const depth = Math.min(descentHeight, j) - lastHeight;
-                if (depth > 0) {
-                    trapped += (i - descent - 1) * depth;
-                }
-            }
+        if (currentHeight >= prevHeight) {
+            trapped += makeAscent(heights, descentIndices, prevHeight, currentHeight, i);
         }
-        lastHeight = height;
+        prevHeight = currentHeight;
     }
     return trapped;
+};
+
+const makeAscent = (heights, descentIndices, base, currentHeight, currentIndex) => {
+    let count = 0;
+    let descentIndex, descentHeight;
+    while (base < currentHeight && descentIndices.length > 0) {
+        descentIndex = descentIndices.pop();
+        descentHeight = heights[descentIndex];
+        const depth = Math.min(descentHeight, currentHeight) - base;
+        const width = currentIndex - descentIndex - 1;
+        const area = depth * width;
+        count += area;
+        base += depth;
+    }
+    if (base < descentHeight) {
+        descentIndices.push(descentIndex);
+    }
+    return  count;
 };
